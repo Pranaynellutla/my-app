@@ -73,3 +73,17 @@ async def request_ride(request: RideRequest):
         "arrival_estimate": "5 minutes",
         "vehicle_type": drivers_db[selected_id]["vehicle"]
     }
+
+
+
+
+@echo off
+echo Starting ZEVO Backend Setup...
+:: 1. Install all libraries from your requirements file
+CALL pip install -r requirements.txt
+echo Setup Complete. Starting ZEVO Server...
+:: 2. Set the port (Optional, default is 8000)
+set UVICORN_PORT=8000
+:: 3. Run the application with auto-reload
+CALL uvicorn main:app --reload
+pause
