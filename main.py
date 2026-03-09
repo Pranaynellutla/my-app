@@ -38,3 +38,38 @@ async def tracking_endpoint(websocket: WebSocket, driver_id: int):
             print(f"ZEVO Driver {driver_id} position: {data}")
     except WebSocketDisconnect:
         print(f"Driver {driver_id} disconnected.")
+
+
+
+
+# --- PASSENGER LOGIC: RIDE REQUESTING ---
+
+class RideRequest(BaseModel):
+    passenger_id: int
+    pickup_location: str
+    drop_location: str
+    vehicle_preference: str # 'EV', 'CNG', or 'Any'
+
+@app.post("/passenger/request-ride")
+async def request_ride(request: RideRequest):
+    # This filters our drivers to find those who are Online 
+    # and match the 'Green' vehicle preference of ZEVO
+    available_drivers = [
+        d_id for d_id, info in drivers_db.items() 
+        if info["is_online"] == True and 
+        (request.vehicle_preference == "Any" or info["vehicle"] == request.vehicle_preference)
+    ]
+    
+    if not available_drivers:
+        raise HTTPException(status_code=404, detail="No ZEVO drivers nearby. Try again soon.")
+    
+    # Pick the first available driver (Simplified for your MVP)
+    selected_id = available_drivers[0]
+    driver_name = drivers_db[selected_id]["name"]
+    
+    return {
+        "status": "success",
+        "message": f"Driver {driver_name} has accepted your request!",
+        "arrival_estimate": "5 minutes",
+        "vehicle_type": drivers_db[selected_id]["vehicle"]
+    }
